@@ -1,7 +1,5 @@
 var express = require('express');
 var router = express.Router();
-var express = require('express');
-var router = express.Router();
 const { ObjectId } = require("mongodb")
 var MongoClient = require('mongodb').MongoClient;
 MongoClient.connect('mongodb://127.0.0.1:27017', async (err, client) => {
@@ -12,7 +10,7 @@ MongoClient.connect('mongodb://127.0.0.1:27017', async (err, client) => {
   router.post('/', async function (req, res, next) {
     const data = req.body
     console.log(data)
-    console.log(data[1].qty)
+    //console.log(data[0].qty)
     var total = 0;
     for (let i = 0; i < data.length; i++) {
       const product = await db.collection("product_collection").find({ _id: { $in: [ObjectId(data[i].id)] } }).toArray()
@@ -36,8 +34,8 @@ MongoClient.connect('mongodb://127.0.0.1:27017', async (err, client) => {
     console.log(total)
    await db.collection("total").insertOne({"total":total,
                                             "date":date})
-    const startDate=new Date("2022-11-09") 
-    const endDate=new Date("2022-12-16")   
+    const startDate=new Date("2022-11-06") 
+    const endDate=new Date("2022-12-17")   
     var dateView=await db.collection("total").find({
       date:{
         $gte:startDate,
@@ -45,28 +43,49 @@ MongoClient.connect('mongodb://127.0.0.1:27017', async (err, client) => {
       }
     }).toArray()
     console.log(dateView)
+    
+
     // var   totalWithDate=0
     // for(let i=0;i<dateView.length;i++){
     //   //console.log(dateView[i].total)
     //   totalWithDate +=dateView[i].total
     // }
    // console.log(totalWithDate)
-  const  totalAll=await db.collection("total").aggregate(
-    [{ $match : { 
-    date:{
-      $gte:startDate,
-      $lt:endDate
-    }}},
-   {$group:
-          {
-            _id: { year: { $year: "$date" } },
-            totalAmount: { $sum: "$total" },
-            count: { $sum: 1 }
-          }
-      }
+//   const  totalAll=await db.collection("total").aggregate(
+//     [{ $match : { 
+//     date:{
+//       $gte:startDate,
+//       $lt:endDate
+//     }}},
+//    {$group:
+//           {
+//             _id: { year: { $year: "$date" } },
+//             totalAmount: { $sum: "$total" },
+//             count: { $sum: 1 }
+//           }
+//       }
     
-    ]
- ).toArray()
+//     ]
+//  ).toArray()
+
+
+const  totalAll=await db.collection("total").aggregate(
+      [{ $match : { 
+      date:{
+        $gte:startDate,
+        $lt:endDate
+      }}},
+     {$group:
+            {
+              _id: { year: { $year: "$date" } },
+              totalAmount: { $sum: "$total" },
+              count: { $sum: 1 }
+            }
+        }
+      
+      ]
+   ).toArray()
+  
    console.log(totalAll)
     res.send({"total":total,
                  "dateArray":dateView,
